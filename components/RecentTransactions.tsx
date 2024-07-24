@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { BankTabItem } from "./BankTabItem";
 import BankInfo from "./BankInfo";
 import TransactionsTable from "./TransactionsTable";
+import { Pagination } from "./Pagination";
 
 const RecentTransactions = ({
   accounts,
@@ -60,11 +61,11 @@ const RecentTransactions = ({
 
             <TransactionsTable transactions={currentTransactions} />
 
-            {/* {totalPages > 1 && (
+            {totalPages > 1 && (
               <div className="my-4 w-full">
                 <Pagination totalPages={totalPages} page={page} />
               </div>
-            )}  */}
+            )}
           </TabsContent>
         ))}
       </Tabs>

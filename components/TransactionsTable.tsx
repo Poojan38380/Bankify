@@ -30,7 +30,7 @@ const CategoryBadge = ({ category }: CategoryBadgeProps) => {
   );
 };
 
-const TransactionsTable = ({ transactions = [] }: TransactionTableProps) => {
+const TransactionsTable = ({ transactions }: TransactionTableProps) => {
   return (
     <Table>
       <TableHeader className="bg-[#f9fafb]">
