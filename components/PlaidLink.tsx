@@ -11,10 +11,11 @@ import {
   exchangePublicToken,
 } from "@/lib/actions/user.actions";
 import Image from "next/image";
+import { Loader2 } from "lucide-react";
 
 const PlaidLink = ({ user, variant }: PlaidLinkProps) => {
   const router = useRouter();
-
+  const [loading, setLoading] = useState(false);
   const [token, setToken] = useState("");
 
   useEffect(() => {
@@ -29,11 +30,12 @@ const PlaidLink = ({ user, variant }: PlaidLinkProps) => {
 
   const onSuccess = useCallback<PlaidLinkOnSuccess>(
     async (public_token: string) => {
+      setLoading(true);
       await exchangePublicToken({
         publicToken: public_token,
         user,
       });
-
+      setLoading(false);
       router.push("/");
     },
     [user]
@@ -51,10 +53,10 @@ const PlaidLink = ({ user, variant }: PlaidLinkProps) => {
       {variant === "primary" ? (
         <Button
           onClick={() => open()}
-          disabled={!ready}
+          disabled={!ready || loading}
           className="plaidlink-primary"
         >
-          Connect bank
+          {loading ? "Redirecting..." : "Connect bank"}
         </Button>
       ) : variant === "ghost" ? (
         <Button

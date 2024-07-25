@@ -31,8 +31,11 @@ export const getUserInfo = async ({ userId }: getUserInfoProps) => {
     );
 
     return parseStringify(user.documents[0]);
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    throw new Error(error.message || "An unexpected error occurred.");
+
+    console.error("Error fetching user info:", error);
+    // Throw the error to be caught by the frontend
   }
 };
 
@@ -51,7 +54,7 @@ export const signIn = async ({ email, password }: signInProps) => {
     const user = await getUserInfo({ userId: session.userId });
 
     return parseStringify(user);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error", error);
   }
 };
@@ -62,6 +65,15 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
   let newUserAccount;
 
   try {
+    const dwollaCustomerUrl = await createDwollaCustomer({
+      ...userData,
+      type: "personal",
+    });
+
+    if (!dwollaCustomerUrl) throw new Error("Error creating Dwolla customer");
+
+    const dwollaCustomerId = extractCustomerIdFromUrl(dwollaCustomerUrl);
+
     const { account, database } = await createAdminClient();
 
     newUserAccount = await account.create(
@@ -72,15 +84,6 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
     );
 
     if (!newUserAccount) throw new Error("Error creating user");
-
-    const dwollaCustomerUrl = await createDwollaCustomer({
-      ...userData,
-      type: "personal",
-    });
-
-    if (!dwollaCustomerUrl) throw new Error("Error creating Dwolla customer");
-
-    const dwollaCustomerId = extractCustomerIdFromUrl(dwollaCustomerUrl);
 
     const useridtoset = newUserAccount.$id;
 
@@ -106,8 +109,9 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
     });
 
     return parseStringify(newUser);
-  } catch (error) {
-    console.error("Error", error);
+  } catch (error: any) {
+    console.error("Error while SignUp", error);
+    throw new Error(error.message || "An unexpected error occurred.");
   }
 };
 

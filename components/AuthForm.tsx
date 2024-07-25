@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
@@ -23,12 +23,34 @@ import CustomInput from "./CustomInput";
 import { authFormSchema } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { getLoggedInUser, signIn, signUp } from "@/lib/actions/user.actions";
+import {
+  getLoggedInUser,
+  logoutAccount,
+  signIn,
+  signUp,
+} from "@/lib/actions/user.actions";
 import PlaidLink from "./PlaidLink";
 import { lastEventId } from "@sentry/nextjs";
+import ErrorToast from "./ErrorToast";
 
 const AuthForm = ({ type }: { type: string }) => {
   const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const loggedInUser = await getLoggedInUser();
+        if (loggedInUser) {
+          setUser(loggedInUser);
+        }
+      } catch (error) {
+        console.error("Error fetching logged-in user:", error);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
@@ -69,12 +91,20 @@ const AuthForm = ({ type }: { type: string }) => {
           password: data.password,
         });
         if (response) router.push("/");
+        else ErrorToast("Provide correct details");
       }
-    } catch (error) {
+    } catch (error: any) {
+      ErrorToast(error.message || "An unexpected error occurred.");
       console.error(error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLogOut = async () => {
+    const loggedOut = await logoutAccount();
+
+    if (loggedOut) router.push("/sign-in");
   };
 
   return (
@@ -99,9 +129,21 @@ const AuthForm = ({ type }: { type: string }) => {
         </div>
       </header>
       {user ? (
-        <div className="flex flex-col gap-4">
-          <PlaidLink user={user} variant="primary" />
-        </div>
+        <>
+          <div className="flex flex-col gap-4">
+            <PlaidLink user={user} variant="primary" />
+          </div>
+          <div className=" flex gap-4 ">
+            <p>Logout ?</p>
+            <Image
+              onClick={handleLogOut}
+              src="icons/logout.svg"
+              width={20}
+              height={20}
+              alt="jsm"
+            />
+          </div>
+        </>
       ) : (
         <>
           <Form {...form}>
